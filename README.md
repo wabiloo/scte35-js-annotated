@@ -9,7 +9,7 @@ Tool to parse SCTE35 hex and binary strings in the terminal, with NodeJS, or in 
     // See ISCTE35 for methods & ISpliceInfoSection for results.
 
 ```typescript
-    import { SCTE35 } from "scte35";
+    import { SCTE35 } from "scte35-annotated";
     const scte35: SCTE35 = new SCTE35();
     const result1 = scte35.parseFromB64("<base64 string>");
     const result2 = scte35.parseFromHex("<hex string>");
@@ -64,4 +64,4 @@ This is a fork of the original [Comcast scte35-js](https://github.com/Comcast/sc
 - CLI modified to automatically detect input format (hex or base64), rather than requiring the user to specify.
 - Human-readable annotations added to the output JSON, for common fields (spliceCommandType, segmentationUpidType, etc.)
 
-By convention, I will use the same major and minor version as the original project, and increment the patch version for each release.
+By convention, and to remain compatible with the original project, I will use the same major and minor version as the original project, and increment the patch version for each release.
