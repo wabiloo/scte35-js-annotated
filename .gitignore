@@ -65,3 +65,5 @@ build/
 .idea
 .iml
 .vscode
+jsdoc
+.DS_Store
