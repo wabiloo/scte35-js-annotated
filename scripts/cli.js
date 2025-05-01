@@ -10,6 +10,7 @@ function parseArgumentsIntoOptions(rawArgs) {
             "--help": Boolean,
             "--hex": Boolean,
             "--version": Boolean,
+            "--no-annotations": Boolean,
             "-h": "--help",
             "-v": "--version",
         },
@@ -22,6 +23,7 @@ function parseArgumentsIntoOptions(rawArgs) {
         hex: args["--hex"] || false,
         input: args._[0],
         version: args["--version"] || false,
+        noAnnotations: args["--no-annotations"] || false,
     };
 }
 
@@ -43,7 +45,27 @@ async function promptForMissingOptions(options) {
     };
 }
 
-export async function cli(args) {
+// Recursively remove annotation fields (ending with _name, _hex, _ascii, _hms, _s)
+function removeAnnotations(obj) {
+    if (Array.isArray(obj)) {
+        return obj.map(removeAnnotations);
+    }
+    if (obj !== null && typeof obj === 'object') {
+        const newObj = {};
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                // Keep keys that DO NOT contain an underscore
+                if (!/_/.test(key)) {
+                    newObj[key] = removeAnnotations(obj[key]);
+                }
+            }
+        }
+        return newObj;
+    }
+    return obj;
+}
+
+exports.cli = async function(args) {
     let options = parseArgumentsIntoOptions(args);
     if (options.help) {
         console.log("Usage: scte35 [options] [arguments]\n");
@@ -58,6 +80,7 @@ export async function cli(args) {
             { Option: "--help, -h", Description: "print node command line options (currently set)" },
             { Option: "--hex", Description: "evaluate using hexadecimal scte35 input" },
             { Option: "--version, -v", Description: "print SCTE35.js version" },
+            { Option: "--no-annotations", Description: "strip added annotations (_name, _hex, etc.) from output" },
         ]);
         console.log("\nDocumentation can be found at https://github.com/Comcast/scte35-js");
         return;
@@ -66,14 +89,31 @@ export async function cli(args) {
         console.log(version);
         return;
     }
-    console.log(options);
-    options = await promptForMissingOptions(options);
-    let output;
-    if (options.format == "Base64") {
-        output = JSON.stringify(scte35.parseFromB64(options.input), null, 4);
+
+    // Get the original noAnnotations flag before potentially overwriting options
+    const noAnnotations = options.noAnnotations;
+
+    // Prompt if input is missing *before* parsing
+    // Merge the prompt results back into the options object
+    const promptResult = await promptForMissingOptions(options);
+    options = { ...options, ...promptResult };
+
+    let parsedResult;
+    try {
+        if (options.format == "Base64") {
+            parsedResult = scte35.parseFromB64(options.input);
+        }
+        if (options.format == "Hexadecimal") {
+            parsedResult = scte35.parseFromHex(options.input);
+        }
+    } catch (e) {
+        console.error("Error parsing SCTE-35 data:", e.message);
+        process.exit(1);
     }
-    if (options.format == "Hexadecimal") {
-        output = JSON.stringify(scte35.parseFromHex(options.input), null, 4);
-    }
+
+    // Conditionally remove annotations using the preserved flag value
+    const finalResult = noAnnotations ? removeAnnotations(parsedResult) : parsedResult;
+
+    const output = JSON.stringify(finalResult, null, 4);
     console.log(output);
 }
