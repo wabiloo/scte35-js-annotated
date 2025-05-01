@@ -27,22 +27,23 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Comcast/scte35-js.git"
+        "url": "git+https://github.com/wabiloo/scte35-js-annotated.git"
     },
-    "author": "Comcast VIPER",
+    "author": "Comcast VIPER + Fabre Lambeau",
     "keywords": [
         "cli",
         "scte35"
     ],
     "contributors": [
         "Andrei Hetman <andrei.hetman@gmail.com",
-        "Eric Stobbart <no_email_provided@donotemail.com"
+        "Eric Stobbart <no_email_provided@donotemail.com",
+        "Fabre Lambeau <fabre.gmail@lambeau.com>"
     ],
     "license": "Apache-2.0",
     "bugs": {
-        "url": "https://github.com/Comcast/scte35-js/issues"
+        "url": "https://github.com/wabiloo/scte35-js-annotated/issues"
     },
-    "homepage": "https://github.com/Comcast/scte35-js#readme",
+    "homepage": "https://github.com/wabiloo/scte35-js-annotated#readme",
     "devDependencies": {
         "@types/chai": "4.3.11",
         "@types/mocha": "10.0.6",
