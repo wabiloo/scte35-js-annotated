@@ -1,6 +1,5 @@
-import arg from "arg";
-import inquirer from "inquirer";
-import { SCTE35 } from "../build/scte35";
+const arg = require("arg");
+const { SCTE35 } = require("../build/scte35");
 
 const version = require("../package.json").version;
 const scte35 = new SCTE35();
@@ -35,6 +34,8 @@ async function promptForMissingOptions(options) {
             message: "Please provide the SCTE-35 tag that you would like to parse",
         });
     }
+
+    const inquirer = (await import("inquirer")).default;
     const answers = await inquirer.prompt(questions);
     return {
         format: options.hex ? "Hexadecimal" : "Base64",
