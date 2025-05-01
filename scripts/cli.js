@@ -8,7 +8,6 @@ function parseArgumentsIntoOptions(rawArgs) {
     const args = arg(
         {
             "--help": Boolean,
-            "--hex": Boolean,
             "--version": Boolean,
             "--no-annotations": Boolean,
             "-h": "--help",
@@ -20,7 +19,6 @@ function parseArgumentsIntoOptions(rawArgs) {
     );
     return {
         help: args["--help"] || false,
-        hex: args["--hex"] || false,
         input: args._[0],
         version: args["--version"] || false,
         noAnnotations: args["--no-annotations"] || false,
@@ -40,12 +38,11 @@ async function promptForMissingOptions(options) {
     const inquirer = (await import("inquirer")).default;
     const answers = await inquirer.prompt(questions);
     return {
-        format: options.hex ? "Hexadecimal" : "Base64",
         input: options.input || answers.input,
     };
 }
 
-// Recursively remove annotation fields (ending with _name, _hex, _ascii, _hms, _s)
+// Recursively remove annotation fields (ending with '_*')
 function removeAnnotations(obj) {
     if (Array.isArray(obj)) {
         return obj.map(removeAnnotations);
@@ -65,6 +62,41 @@ function removeAnnotations(obj) {
     return obj;
 }
 
+// Function to detect input format
+function detectInputFormat(inputString) {
+    if (!inputString) {
+        // Should ideally not happen due to prompt
+        throw new Error("Input string is empty.");
+    }
+
+    // Remove optional '0x' prefix for hex check
+    const normalizedInput = inputString.startsWith('0x') ? inputString.substring(2) : inputString;
+
+    // Regex for valid Hex characters (case-insensitive)
+    const hexRegex = /^[0-9a-fA-F]+$/;
+
+    if (hexRegex.test(normalizedInput)) {
+        return "Hexadecimal";
+    }
+
+    // Regex for Base64 characters (includes +, /, =)
+    // This is a basic check; true Base64 validation is more complex
+    // but for distinguishing from hex, this should suffice.
+    const base64Regex = /^[A-Za-z0-9+/]*=?=?$/;
+    if (base64Regex.test(inputString)) { // Test original string for Base64 chars
+        // Further check: if it *only* contains hex chars but didn't match hexRegex
+        // (e.g., empty string after removing 0x), it shouldn't be base64.
+        // Also, pure hex strings can technically be valid base64, but we prioritize Hex.
+        if (hexRegex.test(inputString)) return "Hexadecimal"; // Prioritize Hex if ambiguous
+        return "Base64";
+    }
+
+    // Fallback or throw error if format is ambiguous/invalid
+    // Let's be lenient and assume Base64 if it doesn't look like Hex
+    // The parser will throw a specific error if it's truly invalid.
+    return "Base64";
+}
+
 exports.cli = async function(args) {
     let options = parseArgumentsIntoOptions(args);
     if (options.help) {
@@ -78,7 +110,6 @@ exports.cli = async function(args) {
         );
         console.table([
             { Option: "--help, -h", Description: "print node command line options (currently set)" },
-            { Option: "--hex", Description: "evaluate using hexadecimal scte35 input" },
             { Option: "--version, -v", Description: "print SCTE35.js version" },
             { Option: "--no-annotations", Description: "strip added annotations (_name, _hex, etc.) from output" },
         ]);
@@ -100,11 +131,19 @@ exports.cli = async function(args) {
 
     let parsedResult;
     try {
-        if (options.format == "Base64") {
-            parsedResult = scte35.parseFromB64(options.input);
-        }
-        if (options.format == "Hexadecimal") {
-            parsedResult = scte35.parseFromHex(options.input);
+        const format = detectInputFormat(options.input);
+        let inputToParse = options.input;
+
+        if (format === "Hexadecimal") {
+            // Remove '0x' prefix if present before parsing
+            if (inputToParse.startsWith('0x')) {
+                inputToParse = inputToParse.substring(2);
+            }
+            console.log("Detected format: Hexadecimal"); // Added for clarity
+            parsedResult = scte35.parseFromHex(inputToParse);
+        } else if (format === "Base64") {
+            console.log("Detected format: Base64"); // Added for clarity
+            parsedResult = scte35.parseFromB64(options.input); // Use original input for B64
         }
     } catch (e) {
         console.error("Error parsing SCTE-35 data:", e.message);
