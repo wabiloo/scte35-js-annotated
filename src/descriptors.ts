@@ -70,6 +70,26 @@ export const enum SegmentationUpidType {
     URI = 0x0f,
 }
 
+// Mapping from SegmentationUpidType enum value to human-readable string
+export const SegmentationUpidTypeMap: { [key in SegmentationUpidType]?: string } = {
+    [SegmentationUpidType.NOT_USED]: "Not Used",
+    [SegmentationUpidType.USER_DEFINED]: "User Defined (Deprecated)",
+    [SegmentationUpidType.ISCI]: "ISCI (Deprecated)",
+    [SegmentationUpidType.AD_ID]: "Ad-ID",
+    [SegmentationUpidType.UMID]: "UMID (SMPTE S330M)",
+    [SegmentationUpidType.ISAN]: "ISAN (ISO 15706, Deprecated)",
+    [SegmentationUpidType.VISAN]: "VISAN (ISO 26300-2)",
+    [SegmentationUpidType.TID]: "Tribune Media Systems Program identifier",
+    [SegmentationUpidType.TI]: "AiringID (formerly Turner ID)",
+    [SegmentationUpidType.ADI]: "CableLabs Content Identifier",
+    [SegmentationUpidType.EIDR]: "EIDR (Entertainment Identifier Registry)",
+    [SegmentationUpidType.ATSC]: "ATSC Content Identifier",
+    [SegmentationUpidType.MPU]: "Managed Private UPID",
+    [SegmentationUpidType.MID]: "Multiple UPID types",
+    [SegmentationUpidType.ADS]: "Advertising Digital Identification, LLC",
+    [SegmentationUpidType.URI]: "URI (RFC 3986)",
+};
+
 export const enum SegmentationTypeId {
     NOT_INDICATED = 0x00,
     CONTENT_IDENTIFICATION = 0x01,
@@ -99,6 +119,36 @@ export const enum SegmentationTypeId {
     NETWORK_END = 0x51,
 }
 
+// Mapping from SegmentationTypeId enum value to human-readable string
+export const SegmentationTypeIdMap: { [key in SegmentationTypeId]?: string } = {
+    [SegmentationTypeId.NOT_INDICATED]: "Not Indicated",
+    [SegmentationTypeId.CONTENT_IDENTIFICATION]: "Content Identification",
+    [SegmentationTypeId.PROGRAM_START]: "Program Start",
+    [SegmentationTypeId.PROGRAM_END]: "Program End",
+    [SegmentationTypeId.PROGRAM_EARLY_TERMINATION]: "Program Early Termination",
+    [SegmentationTypeId.PROGRAM_BREAKAWAY]: "Program Breakaway",
+    [SegmentationTypeId.PROGRAM_RESUMPTION]: "Program Resumption",
+    [SegmentationTypeId.PROGRAM_RUNOVER_PLANNED]: "Program Runover Planned",
+    [SegmentationTypeId.PROGRAM_RUNOVER_UNPLANNED]: "Program Runover Unplanned",
+    [SegmentationTypeId.PROGRAM_OVERLAP_START]: "Program Overlap Start",
+    [SegmentationTypeId.PROGRAM_BLACKOUT_OVERRIDE]: "Program Blackout Override",
+    [SegmentationTypeId.PROGRAM_START_IN_PROGRESS]: "Program Start In Progress",
+    [SegmentationTypeId.CHAPTER_START]: "Chapter Start",
+    [SegmentationTypeId.CHAPTER_END]: "Chapter End",
+    [SegmentationTypeId.PROVIDER_ADVERTISEMENT_START]: "Provider Advertisement Start",
+    [SegmentationTypeId.PROVIDER_ADVERTISEMENT_END]: "Provider Advertisement End",
+    [SegmentationTypeId.DISTRIBUTOR_ADVERTISEMENT_START]: "Distributor Advertisement Start",
+    [SegmentationTypeId.DISTRIBUTOR_ADVERTISEMENT_END]: "Distributor Advertisement End",
+    [SegmentationTypeId.PROVIDER_PLACEMENT_OPPORTUNITY_START]: "Provider Placement Opportunity Start",
+    [SegmentationTypeId.PROVIDER_PLACEMENT_OPPORTUNITY_END]: "Provider Placement Opportunity End",
+    [SegmentationTypeId.DISTRIBUTOR_PLACEMENT_OPPORTUNITY_START]: "Distributor Placement Opportunity Start",
+    [SegmentationTypeId.DISTRIBUTOR_PLACEMENT_OPPORTUNITY_END]: "Distributor Placement Opportunity End",
+    [SegmentationTypeId.UNSCHEDULED_EVENT_START]: "Unscheduled Event Start",
+    [SegmentationTypeId.UNSCHEDULED_EVENT_END]: "Unscheduled Event End",
+    [SegmentationTypeId.NETWORK_START]: "Network Start",
+    [SegmentationTypeId.NETWORK_END]: "Network End",
+};
+
 export enum SegmentationMessage {
     RESTRICT_GROUP_0 = 0x00,
     RESTRICT_GROUP_1 = 0x01,
@@ -122,14 +172,23 @@ export interface ISegmentationDescriptor extends ISpliceDescriptorBase {
     componentCount?: number;
     // component Tag, pts_offset
     segmentationDuration?: number;
+    segmentationDuration_hms?: string; // HH:MM:SS.mmm
+    segmentationDuration_s?: number; // seconds
+    segmentationDuration_float?: number; // seconds
     segmentationUpidType?: SegmentationUpidType;
+    segmentationUpidType_name?: string; // Human-readable name
+    segmentationUpidType_hex?: string; // Hex representation
     segmentationUpidLength?: number;
     segmentationUpid?: Uint8Array;
+    segmentationUpid_hex?: string; // Hex representation of bytes
+    segmentationUpid_ascii?: string; // ASCII string (non-printable replaced with '?')
     // NOTE(estobbart): Even if this type is 0x34 || 0x36,
     // the subSegment* values could still be undefined.
     // The availability of those values depends on the origination
     // of the SCTE35 data and if the 2016 spec is implemented.
     segmentationTypeId?: SegmentationTypeId;
+    segmentationTypeId_name?: string; // Human-readable name
+    segmentationTypeId_hex?: string; // Hex representation (e.g., "0x37")
     segmentNum?: number;
     segmentsExpected?: number;
     subSegmentNum?: number;
@@ -218,10 +277,21 @@ export const parseDescriptor = (view: DataView): ISpliceDescriptor => {
             if (segmentationDescriptor.segmentationDurationFlag) {
                 segmentationDescriptor.segmentationDuration = util.shiftThirtyTwoBits(view.getUint8(offset++));
                 segmentationDescriptor.segmentationDuration += view.getUint32(offset);
+                segmentationDescriptor.segmentationDuration_hms = util.formatDuration(
+                    segmentationDescriptor.segmentationDuration,
+                ); // Format duration
+                segmentationDescriptor.segmentationDuration_s =
+                    segmentationDescriptor.segmentationDuration / 90000.0; // Calculate float seconds
                 offset += 4;
             }
 
             segmentationDescriptor.segmentationUpidType = view.getUint8(offset++);
+            segmentationDescriptor.segmentationUpidType_name =
+                SegmentationUpidTypeMap[segmentationDescriptor.segmentationUpidType] ?? // Add name
+                `unknown (0x${segmentationDescriptor.segmentationUpidType.toString(16)})`;
+            segmentationDescriptor.segmentationUpidType_hex = `0x${segmentationDescriptor.segmentationUpidType
+                .toString(16)
+                .padStart(2, "0")}`; // Add hex
             segmentationDescriptor.segmentationUpidLength = view.getUint8(offset++);
 
             let bytesToCopy = segmentationDescriptor.segmentationUpidLength;
@@ -232,7 +302,20 @@ export const parseDescriptor = (view: DataView): ISpliceDescriptor => {
             }
             offset += segmentationDescriptor.segmentationUpidLength;
 
+            // Convert UPID bytes to ASCII string (replacing non-printable with '?')
+            segmentationDescriptor.segmentationUpid_ascii = util.bytesToAsciiString(segmentationDescriptor.segmentationUpid);
+            // Convert UPID bytes to hex string
+            segmentationDescriptor.segmentationUpid_hex = segmentationDescriptor.segmentationUpid
+                ? `0x${Array.from(segmentationDescriptor.segmentationUpid)
+                      .map((b) => b.toString(16).padStart(2, "0"))
+                      .join("")}`
+                : "";
+
             segmentationDescriptor.segmentationTypeId = view.getUint8(offset++);
+            segmentationDescriptor.segmentationTypeId_name =
+                SegmentationTypeIdMap[segmentationDescriptor.segmentationTypeId] ?? // Use the map
+                `unknown (0x${segmentationDescriptor.segmentationTypeId.toString(16)})`;
+            segmentationDescriptor.segmentationTypeId_hex = `0x${segmentationDescriptor.segmentationTypeId.toString(16).padStart(2, '0')}`; // Add hex value
             segmentationDescriptor.segmentNum = view.getUint8(offset++);
             segmentationDescriptor.segmentsExpected = view.getUint8(offset++);
 

@@ -3,6 +3,8 @@ import * as descriptors from "./descriptors";
 export interface IBreakDuration {
     autoReturn: boolean;
     duration: number;
+    duration_hms?: string; // HH:MM:SS.mmm
+    duration_s?: number; // seconds
 }
 
 export interface ISpliceComponent {
@@ -80,6 +82,7 @@ export interface ISpliceInfoSection {
     tier?: number;
     spliceCommandLength?: number;
     spliceCommandType?: SpliceCommandType;
+    spliceCommandType_name?: string;
     spliceCommand?: SpliceCommand;
     descriptorLoopLength?: number;
     descriptors?: descriptors.ISpliceDescriptor[];
@@ -97,6 +100,16 @@ export const enum SpliceCommandType {
     // RESERVED 0x08 - FE
     PRIVATE_COMMAND = 0xff, // TODO: support parsing into an array buffer or something?
 }
+
+// Mapping from SpliceCommandType enum value to human-readable string
+export const SpliceCommandTypeMap: { [key in SpliceCommandType]?: string } = {
+    [SpliceCommandType.SPLICE_NULL]: "splice_null",
+    [SpliceCommandType.SPLICE_SCHEDULE]: "splice_schedule",
+    [SpliceCommandType.SPLICE_INSERT]: "splice_insert",
+    [SpliceCommandType.TIME_SIGNAL]: "time_signal",
+    [SpliceCommandType.BANDWIDTH_RESERVATION]: "bandwidth_reservation",
+    [SpliceCommandType.PRIVATE_COMMAND]: "private_command",
+};
 
 export type SpliceEvent = ISpliceScheduleEvent | ISpliceInsertEvent;
 export type EventTag = SpliceCommandType.SPLICE_SCHEDULE | SpliceCommandType.SPLICE_INSERT;

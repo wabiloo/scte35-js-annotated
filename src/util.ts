@@ -26,3 +26,40 @@ export const THIRTY_TWO_BIT_MULTIPLIER = Math.pow(2, 32);
 export const shiftThirtyTwoBits = (byte: number): number => {
     return byte * THIRTY_TWO_BIT_MULTIPLIER;
 };
+
+/**
+ * Converts a duration from 90kHz clock ticks to a formatted string HH:MM:SS.mmm.
+ * @param ticks Duration in 90kHz clock ticks.
+ * @returns Formatted duration string.
+ */
+export const formatDuration = (ticks: number): string => {
+    if (ticks === null || ticks === undefined || ticks < 0) {
+        return "";
+    }
+
+    const totalMilliseconds = Math.round(ticks / 90); // Convert 90kHz ticks to milliseconds
+
+    const milliseconds = String(totalMilliseconds % 1000).padStart(3, "0");
+    const totalSeconds = Math.floor(totalMilliseconds / 1000);
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const minutes = String(totalMinutes % 60).padStart(2, "0");
+    const hours = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
+
+    return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+};
+
+/**
+ * Converts a Uint8Array to an ASCII string.
+ * Invalid characters are ignored.
+ * @param bytes Uint8Array containing ASCII codes.
+ * @returns ASCII string.
+ */
+export const bytesToAsciiString = (bytes: Uint8Array | undefined): string => {
+    if (!bytes) {
+        return "";
+    }
+    // Replace bytes outside printable ASCII range (32-126) with '?'
+    const printableBytes = Array.from(bytes).map((byte) => (byte >= 32 && byte <= 126 ? byte : 63)); // 63 is ASCII for '?'
+    return String.fromCharCode(...printableBytes);
+};

@@ -15,21 +15,22 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+import { Buffer } from "buffer/";
 import {
-    SpliceEvent,
     EventTag,
+    ISCTE35,
+    ISpliceInfoSection,
     ISpliceInsertEvent,
+    ISplicePrivate,
     ISpliceSchedule,
-    SpliceCommandType,
     ISpliceScheduleEvent,
     ISpliceTime,
-    ISpliceInfoSection,
-    ISCTE35,
-    ISplicePrivate,
+    SpliceCommandType,
+    SpliceCommandTypeMap,
+    SpliceEvent,
 } from "./ISCTE35";
 import * as descriptors from "./descriptors";
 import * as util from "./util";
-import { Buffer } from "buffer/";
 
 export class SCTE35 implements ISCTE35 {
     private buffer = Buffer;
@@ -128,6 +129,8 @@ export class SCTE35 implements ISCTE35 {
                 autoReturn: !!(byte & 0x80),
                 duration: (byte & 0x01 ? util.THIRTY_TWO_BIT_MULTIPLIER : 0) + view.getUint32(offset),
             };
+            event.breakDuration.duration_hms = util.formatDuration(event.breakDuration.duration);
+            event.breakDuration.duration_s = event.breakDuration.duration / 90000.0;
             offset += 4;
         }
 
@@ -252,6 +255,7 @@ export class SCTE35 implements ISCTE35 {
         sis.spliceCommandLength = ((byte & 0x0f) << 8) + view.getUint8(offset++);
 
         sis.spliceCommandType = view.getUint8(offset++);
+        sis.spliceCommandType_name = SpliceCommandTypeMap[sis.spliceCommandType] ?? `unknown (0x${sis.spliceCommandType.toString(16)})`;
 
         // Workaround for spliceCommandLength =0x0fff, which is a legacy fallback
         if (sis.spliceCommandLength === 0x0fff) {
