@@ -103,6 +103,7 @@ export const SegmentationUpidTypeMap: { [key in SegmentationUpidType]?: string }
 export const enum SegmentationTypeId {
     NOT_INDICATED = 0x00,
     CONTENT_IDENTIFICATION = 0x01,
+    CALL_AD_SERVER = 0x02,
     PROGRAM_START = 0x10,
     PROGRAM_END = 0x11,
     PROGRAM_EARLY_TERMINATION = 0x12,
@@ -133,6 +134,7 @@ export const enum SegmentationTypeId {
 export const SegmentationTypeIdMap: { [key in SegmentationTypeId]?: string } = {
     [SegmentationTypeId.NOT_INDICATED]: "Not Indicated",
     [SegmentationTypeId.CONTENT_IDENTIFICATION]: "Content Identification",
+    [SegmentationTypeId.CALL_AD_SERVER]: "Call Ad Server",
     [SegmentationTypeId.PROGRAM_START]: "Program Start",
     [SegmentationTypeId.PROGRAM_END]: "Program End",
     [SegmentationTypeId.PROGRAM_EARLY_TERMINATION]: "Program Early Termination",
