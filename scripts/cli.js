@@ -139,11 +139,11 @@ exports.cli = async function(args) {
             if (inputToParse.startsWith('0x')) {
                 inputToParse = inputToParse.substring(2);
             }
-            console.log("Detected format: Hexadecimal"); // Added for clarity
+            // console.log("Detected format: Hexadecimal"); 
             parsedResult = scte35.parseFromHex(inputToParse);
         } else if (format === "Base64") {
-            console.log("Detected format: Base64"); // Added for clarity
-            parsedResult = scte35.parseFromB64(options.input); // Use original input for B64
+            // console.log("Detected format: Base64"); 
+            parsedResult = scte35.parseFromB64(options.input); 
         }
     } catch (e) {
         console.error("Error parsing SCTE-35 data:", e.message);
