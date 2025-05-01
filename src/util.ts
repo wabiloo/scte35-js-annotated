@@ -63,3 +63,16 @@ export const bytesToAsciiString = (bytes: Uint8Array | undefined): string => {
     const printableBytes = Array.from(bytes).map((byte) => (byte >= 32 && byte <= 126 ? byte : 63)); // 63 is ASCII for '?'
     return String.fromCharCode(...printableBytes);
 };
+
+/**
+ * Converts a duration from 90kHz clock ticks to seconds, rounded to milliseconds.
+ * @param ticks Duration in 90kHz clock ticks.
+ * @returns Duration in seconds, rounded to 3 decimal places.
+ */
+export const ptsDurationToSeconds = (ticks: number): number => {
+    if (ticks === null || ticks === undefined || ticks < 0) {
+        return 0;
+    }
+    const seconds = ticks / 90000.0;
+    return Math.round(seconds * 1000) / 1000; // Round to 3 decimal places
+};

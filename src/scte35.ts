@@ -129,8 +129,10 @@ export class SCTE35 implements ISCTE35 {
                 autoReturn: !!(byte & 0x80),
                 duration: (byte & 0x01 ? util.THIRTY_TWO_BIT_MULTIPLIER : 0) + view.getUint32(offset),
             };
-            event.breakDuration.duration_hms = util.formatDuration(event.breakDuration.duration);
-            event.breakDuration.duration_s = event.breakDuration.duration / 90000.0;
+            if (event.breakDuration && event.breakDuration.duration !== null) {
+                event.breakDuration.duration_hms = util.formatDuration(event.breakDuration.duration);
+                event.breakDuration.duration_s = util.ptsDurationToSeconds(event.breakDuration.duration);
+            }
             offset += 4;
         }
 

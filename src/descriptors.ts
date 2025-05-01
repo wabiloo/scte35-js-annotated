@@ -296,7 +296,7 @@ export const parseDescriptor = (view: DataView): ISpliceDescriptor => {
                     segmentationDescriptor.segmentationDuration,
                 ); // Format duration
                 segmentationDescriptor.segmentationDuration_s =
-                    segmentationDescriptor.segmentationDuration / 90000.0; // Calculate float seconds
+                    util.ptsDurationToSeconds(segmentationDescriptor.segmentationDuration); // Calculate float seconds rounded to ms
                 offset += 4;
             }
 
