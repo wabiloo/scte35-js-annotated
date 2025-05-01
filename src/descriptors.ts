@@ -317,14 +317,15 @@ export const parseDescriptor = (view: DataView): ISpliceDescriptor => {
             }
             offset += segmentationDescriptor.segmentationUpidLength;
 
-            // Convert UPID bytes to ASCII string (replacing non-printable with '?')
-            segmentationDescriptor.segmentationUpid_ascii = util.bytesToAsciiString(segmentationDescriptor.segmentationUpid);
-            // Convert UPID bytes to hex string
-            segmentationDescriptor.segmentationUpid_hex = segmentationDescriptor.segmentationUpid
-                ? `0x${Array.from(segmentationDescriptor.segmentationUpid)
-                      .map((b) => b.toString(16).padStart(2, "0"))
-                      .join("")}`
-                : "";
+            // Check if segmentationUpid exists and is not empty before conversions
+            if (segmentationDescriptor.segmentationUpid && segmentationDescriptor.segmentationUpid.length > 0) {
+                // Convert UPID bytes to ASCII string (replacing non-printable with '?')
+                segmentationDescriptor.segmentationUpid_ascii = util.bytesToAsciiString(segmentationDescriptor.segmentationUpid);
+                // Convert UPID bytes to hex string
+                segmentationDescriptor.segmentationUpid_hex = `0x${Array.from(segmentationDescriptor.segmentationUpid)
+                          .map((b) => b.toString(16).padStart(2, "0"))
+                          .join("")}`;
+            }
 
             segmentationDescriptor.segmentationTypeId = view.getUint8(offset++);
             segmentationDescriptor.segmentationTypeId_name =
