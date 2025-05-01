@@ -39,6 +39,7 @@ export interface ISpliceDescriptorBase {
     spliceDescriptorTag_name?: string; // Human-readable name
     descriptorLength: number;
     identifier: string; // CUEI
+    _parsing_status?: string; // Renamed field
 }
 
 /**
@@ -249,10 +250,12 @@ export const parseDescriptor = (view: DataView): ISpliceDescriptor => {
     // TODO: parse out the descriptors appropriately using descriptor methods
     if (descriptor.spliceDescriptorTag === SpliceDescriptorTag.AVAIL_DESCRIPTOR) {
         offset = descriptor.descriptorLength + 2;
-        console.warn("scte35-js TODO: support spliceDescriptorTag: SpliceDescriptorTag.AVAIL_DESCRIPTOR");
+        console.warn("scte35-js TODO: support spliceDescriptorTag: SpliceDescriptorTag.AVAIL_DESCRIPTOR"); // Reinstate warn
+        descriptor._parsing_status = "Payload parsing not implemented"; // Use renamed field
     } else if (descriptor.spliceDescriptorTag === SpliceDescriptorTag.DTMF_DESCRIPTOR) {
         offset = descriptor.descriptorLength + 2;
-        console.warn("scte35-js TODO: support spliceDescriptorTag: SpliceDescriptorTag.DTMF_DESCRIPTOR");
+        console.warn("scte35-js TODO: support spliceDescriptorTag: SpliceDescriptorTag.DTMF_DESCRIPTOR"); // Reinstate warn
+        descriptor._parsing_status = "Payload parsing not implemented"; // Use renamed field
     } else if (descriptor.spliceDescriptorTag === SpliceDescriptorTag.SEGMENTATION_DESCRIPTOR) {
         const segmentationDescriptor = descriptor as ISegmentationDescriptor;
 
@@ -342,9 +345,12 @@ export const parseDescriptor = (view: DataView): ISpliceDescriptor => {
         }
     } else if (descriptor.spliceDescriptorTag === SpliceDescriptorTag.TIME_DESCRIPTOR) {
         offset = descriptor.descriptorLength + 2;
-        console.warn("scte35-js TODO: support spliceDescriptorTag: SpliceDescriptorTag.TIME_DESCRIPTOR");
+        console.warn("scte35-js TODO: support spliceDescriptorTag: SpliceDescriptorTag.TIME_DESCRIPTOR"); // Reinstate warn
+        descriptor._parsing_status = "Payload parsing for time_descriptor not implemented"; // Use renamed field
     } else {
-        console.error(`scte35-js Unrecognized spliceDescriptorTag ${descriptor.spliceDescriptorTag}`);
+        // console.error(`scte35-js Unrecognized spliceDescriptorTag ${descriptor.spliceDescriptorTag}`);
+        // Cast to number to satisfy TypeScript in the 'else' block
+        descriptor._parsing_status = `Unrecognized tag (0x${(descriptor.spliceDescriptorTag as number).toString(16).padStart(2, '0')})`; // Use renamed field
         offset = descriptor.descriptorLength + 2;
     }
 
