@@ -116,7 +116,7 @@ export class SCTE35 implements ISCTE35 {
                 }
                 (event as ISpliceScheduleEvent).utcSpliceComponents = utcSpliceComponents;
             } else {
-                console.warn("scte35-js TODO: support splice_insert");
+                console.warn("scte35-js TODO: support array in splice_insert");
                 // TODO:.. support for the array in the SPLICE_INSERT
             }
         }

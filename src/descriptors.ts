@@ -26,8 +26,17 @@ export const enum SpliceDescriptorTag {
     // RESERVED 0x04 - 0xFF
 }
 
+// Mapping from SpliceDescriptorTag enum value to human-readable string
+export const SpliceDescriptorTagMap: { [key in SpliceDescriptorTag]?: string } = {
+    [SpliceDescriptorTag.AVAIL_DESCRIPTOR]: "Avail Descriptor",
+    [SpliceDescriptorTag.DTMF_DESCRIPTOR]: "DTMF Descriptor",
+    [SpliceDescriptorTag.SEGMENTATION_DESCRIPTOR]: "Segmentation Descriptor",
+    [SpliceDescriptorTag.TIME_DESCRIPTOR]: "Time Descriptor",
+};
+
 export interface ISpliceDescriptorBase {
     spliceDescriptorTag: SpliceDescriptorTag;
+    spliceDescriptorTag_name?: string; // Human-readable name
     descriptorLength: number;
     identifier: string; // CUEI
 }
@@ -217,6 +226,7 @@ const spliceDescriptor = (view: DataView): ISpliceDescriptor => {
     const descriptor = {} as ISpliceDescriptor;
     let offset = 0;
     descriptor.spliceDescriptorTag = view.getUint8(offset++);
+    descriptor.spliceDescriptorTag_name = SpliceDescriptorTagMap[descriptor.spliceDescriptorTag] ?? `unknown (0x${descriptor.spliceDescriptorTag.toString(16)})`; // Add name
     descriptor.descriptorLength = view.getUint8(offset++);
     descriptor.identifier = "";
     while (descriptor.identifier.length < 4) {

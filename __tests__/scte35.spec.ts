@@ -17,9 +17,9 @@
  */
 
 import { expect } from "chai";
-import { SCTE35 } from "../src/scte35";
-import { ISpliceInsertEvent, ISpliceTime, ISplicePrivate, SpliceCommandType } from "../src/ISCTE35";
+import { ISpliceInsertEvent, ISplicePrivate, ISpliceTime, SpliceCommandType } from "../src/ISCTE35";
 import * as descriptors from "../src/descriptors";
+import { SCTE35 } from "../src/scte35";
 
 describe("SCTE35", () => {
     const scte35: SCTE35 = new SCTE35();

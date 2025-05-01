@@ -33,6 +33,9 @@ describe("SCTE35 Annotations", () => {
             expect(spliceInfo.descriptors).to.not.equal(undefined);
             if (spliceInfo.descriptors && spliceInfo.descriptors.length > 0) {
                 const segDesc = spliceInfo.descriptors[0] as descriptors.ISegmentationDescriptor;
+                expect(segDesc.spliceDescriptorTag).to.eq(2);
+                expect(segDesc.spliceDescriptorTag_name).to.eq("Segmentation Descriptor");
+
                 expect(segDesc.segmentationTypeId).to.eq(55); // Base value 0x37
                 expect(segDesc.segmentationTypeId_name).to.eq("Distributor Placement Opportunity End");
                 expect(segDesc.segmentationTypeId_hex).to.eq("0x37");
